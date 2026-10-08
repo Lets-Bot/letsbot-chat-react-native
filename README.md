@@ -79,6 +79,37 @@ All plugin options are optional: without them the plugin adds sensible English d
 descriptions you already set in `ios.infoPlist`. Pass `"microphone": false` to skip the microphone permission (voice
 notes will then be unavailable). Rebuild the native app (`npx expo prebuild` / `eas build`) after adding the plugin.
 
+### Install directly from GitHub
+
+No npm registry needed: install the tagged release straight from the repository. The package compiles itself on
+install (the `prepare` script runs `bob build`), so the first install takes a little longer.
+
+npm:
+
+```sh
+npm install github:Lets-Bot/letsbot-chat-react-native#0.1.0 react-native-webview react-native-keychain
+cd ios && pod install
+```
+
+Yarn:
+
+```sh
+yarn add @letsbot/react-native-chat@github:Lets-Bot/letsbot-chat-react-native#0.1.0
+yarn add react-native-webview react-native-keychain
+cd ios && pod install
+```
+
+Expo (let Expo pick the native module versions, then add the SDK from GitHub):
+
+```sh
+npx expo install react-native-webview expo-secure-store expo-application
+npm install github:Lets-Bot/letsbot-chat-react-native#0.1.0
+```
+
+The package is still imported as `@letsbot/react-native-chat` and the Expo plugin is still
+`"@letsbot/react-native-chat"`. `#0.1.0` pins the exact release tag. Then follow the Info.plist / AndroidManifest
+(bare) or `app.json` plugin (Expo) steps above.
+
 ## Quick start
 
 Configure once, as early as possible (your root `index.js` / `App.tsx`), and wrap the app in `<LetsBotProvider>`:

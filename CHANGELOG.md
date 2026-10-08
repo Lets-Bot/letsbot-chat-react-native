@@ -27,3 +27,5 @@ First release.
 - Expo config plugin adding iOS camera / photo library / microphone usage descriptions and Android microphone
   permissions.
 - Helpers `appInfoFromDeviceInfo()` / `appInfoFromExpoApplication()`.
+- Install straight from GitHub without the npm registry
+  (`npm install github:Lets-Bot/letsbot-chat-react-native#0.1.0`): a `prepare` script builds `lib/` on install.
