@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "LetsBot Chat Example",
+    "slug": "letsbot-chat-example",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "letsbotexample",
+    "ios": {
+      "bundleIdentifier": "net.letsbot.chat.example",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "net.letsbot.chat.example"
+    },
+    "plugins": [
+      [
+        "../app.plugin.js",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to record voice messages for support chat."
+        }
+      ],
+      "expo-secure-store",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "tsconfigPaths": false
+    }
+  }
+}

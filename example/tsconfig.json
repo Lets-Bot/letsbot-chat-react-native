@@ -1,0 +1,39 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@letsbot/react-native-chat": [
+        "../src/index"
+      ],
+      "react": [
+        "./node_modules/@types/react"
+      ],
+      "react/*": [
+        "./node_modules/@types/react/*"
+      ],
+      "react-native": [
+        "./node_modules/react-native"
+      ],
+      "react-native-webview": [
+        "./node_modules/react-native-webview"
+      ],
+      "react-native-webview/*": [
+        "./node_modules/react-native-webview/*"
+      ]
+    }
+  },
+  "include": [
+    "index.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "../src/**/*.ts",
+    "../src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "../src/**/__tests__"
+  ]
+}

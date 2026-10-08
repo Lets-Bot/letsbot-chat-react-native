@@ -1,0 +1,138 @@
+{
+  "name": "@letsbot/react-native-chat",
+  "version": "0.1.0",
+  "description": "LetsBot In-App Chat SDK for React Native and Expo: the LetsBot chat screen, verified identity, push notifications and unread badges.",
+  "main": "./lib/commonjs/index.js",
+  "module": "./lib/module/index.js",
+  "types": "./lib/typescript/commonjs/src/index.d.ts",
+  "react-native": "./src/index.ts",
+  "source": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/typescript/module/src/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "require": {
+        "types": "./lib/typescript/commonjs/src/index.d.ts",
+        "default": "./lib/commonjs/index.js"
+      }
+    },
+    "./app.plugin.js": "./app.plugin.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "plugin",
+    "app.plugin.js",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:example": "tsc --noEmit -p example/tsconfig.json",
+    "lint": "eslint .",
+    "test": "jest",
+    "build": "bob build",
+    "clean": "del-cli lib",
+    "prepack": "bob build"
+  },
+  "keywords": [
+    "letsbot",
+    "react-native",
+    "expo",
+    "chat",
+    "live-chat",
+    "customer-support",
+    "in-app-chat",
+    "ios",
+    "android"
+  ],
+  "homepage": "https://letsbot.net/developers/in-app-chat",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lets-Bot/letsbot-chat-react-native.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lets-Bot/letsbot-chat-react-native/issues",
+    "email": "support@letsbot.net"
+  },
+  "author": "LetsBot IT Team <support@letsbot.net> (https://letsbot.net)",
+  "license": "MIT",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "@expo/config-plugins": "*",
+    "react": ">=18.2.0",
+    "react-native": ">=0.73.0",
+    "react-native-keychain": ">=8.1.0",
+    "react-native-webview": ">=13.6.0"
+  },
+  "peerDependenciesMeta": {
+    "@expo/config-plugins": {
+      "optional": true
+    },
+    "react-native-keychain": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@eslint/js": "^10.0.1",
+    "@expo/config-plugins": "^57.0.10",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^19.1.1",
+    "@types/react-test-renderer": "^19.3.0",
+    "babel-jest": "^30.5.2",
+    "del-cli": "^6.0.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "jest": "^30.5.2",
+    "react": "19.2.3",
+    "react-native": "0.87.1",
+    "react-native-builder-bob": "^0.43.1",
+    "react-native-keychain": "^10.0.0",
+    "react-native-webview": "^14.0.1",
+    "react-test-renderer": "^19.2.3",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "exclude": "**/{__tests__,__fixtures__,__mocks__}/**",
+    "targets": [
+      [
+        "commonjs",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}
