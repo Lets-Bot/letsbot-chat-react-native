@@ -4,6 +4,7 @@
 type Listener<T> = (value: T) => void;
 
 const appStateListeners = new Set<Listener<string>>();
+const keyboardListeners = new Map<string, Set<Listener<unknown>>>();
 const appearanceListeners = new Set<Listener<{ colorScheme: string | null }>>();
 
 export const Platform = {
@@ -44,7 +45,20 @@ export const StyleSheet = {
   absoluteFill: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
 };
 
+export const Keyboard = {
+  addListener(type: string, listener: Listener<unknown>) {
+    const set = keyboardListeners.get(type) ?? new Set();
+    set.add(listener);
+    keyboardListeners.set(type, set);
+    return { remove: () => set.delete(listener) };
+  },
+};
+
+const windowSize = { width: 390, height: 844, scale: 3, fontScale: 1 };
+export const useWindowDimensions = () => windowSize;
+
 // Host components render as plain element types under react-test-renderer.
+export const StatusBar = 'StatusBar';
 export const View = 'View';
 export const Text = 'Text';
 export const Pressable = 'Pressable';
@@ -61,6 +75,13 @@ export const __mock = {
   setColorScheme(colorScheme: string | null) {
     Appearance.colorScheme = colorScheme;
     appearanceListeners.forEach((listener) => listener({ colorScheme }));
+  },
+  setWindowSize(width: number, height: number) {
+    windowSize.width = width;
+    windowSize.height = height;
+  },
+  emitKeyboard(type: string, event?: unknown) {
+    keyboardListeners.get(type)?.forEach((listener) => listener(event));
   },
   listenerCount() {
     return { appState: appStateListeners.size, appearance: appearanceListeners.size };

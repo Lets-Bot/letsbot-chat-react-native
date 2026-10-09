@@ -56,7 +56,7 @@ describe('configure', () => {
     expect(core.uiHeaders()).toMatchObject({
       'X-LB-App-Id': APP_ID,
       'X-LB-Platform': 'ios',
-      'X-LB-SDK': 'react-native/0.1.0',
+      'X-LB-SDK': 'react-native/0.2.0',
     });
   });
 
@@ -91,7 +91,7 @@ describe('session', () => {
         platform: 'android',
         app_id: APP_ID,
         app_version: '2.3.0',
-        sdk: 'react-native/0.1.0',
+        sdk: 'react-native/0.2.0',
         os_version: '34',
       },
       ctx: { screen: 'order_details', order_id: '1234' },
@@ -252,7 +252,7 @@ describe('push', () => {
       platform: 'ios',
       app_id: APP_ID,
       app_version: '2.3.0',
-      sdk: 'react-native/0.1.0',
+      sdk: 'react-native/0.2.0',
       locale: 'en',
       sandbox: false,
     });
@@ -407,7 +407,7 @@ describe('presentation, notifications and bridge state', () => {
       token: 'tok',
       appId: APP_ID,
       platform: 'ios',
-      sdk: 'react-native/0.1.0',
+      sdk: 'react-native/0.2.0',
       context: { screen: 'home' },
       color: '#112233',
     });

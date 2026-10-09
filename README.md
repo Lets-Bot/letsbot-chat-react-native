@@ -31,7 +31,7 @@ applicationId registered under **Platforms**.
 ### Bare React Native
 
 ```sh
-npm install @letsbot/react-native-chat@0.1.0 react-native-webview react-native-keychain
+npm install @letsbot/react-native-chat@0.2.0 react-native-webview react-native-keychain
 cd ios && pod install
 ```
 
@@ -87,14 +87,14 @@ install (the `prepare` script runs `bob build`), so the first install takes a li
 npm:
 
 ```sh
-npm install github:Lets-Bot/letsbot-chat-react-native#0.1.0 react-native-webview react-native-keychain
+npm install github:Lets-Bot/letsbot-chat-react-native#0.2.0 react-native-webview react-native-keychain
 cd ios && pod install
 ```
 
 Yarn:
 
 ```sh
-yarn add @letsbot/react-native-chat@github:Lets-Bot/letsbot-chat-react-native#0.1.0
+yarn add @letsbot/react-native-chat@github:Lets-Bot/letsbot-chat-react-native#0.2.0
 yarn add react-native-webview react-native-keychain
 cd ios && pod install
 ```
@@ -103,11 +103,11 @@ Expo (let Expo pick the native module versions, then add the SDK from GitHub):
 
 ```sh
 npx expo install react-native-webview expo-secure-store expo-application
-npm install github:Lets-Bot/letsbot-chat-react-native#0.1.0
+npm install github:Lets-Bot/letsbot-chat-react-native#0.2.0
 ```
 
 The package is still imported as `@letsbot/react-native-chat` and the Expo plugin is still
-`"@letsbot/react-native-chat"`. `#0.1.0` pins the exact release tag. Then follow the Info.plist / AndroidManifest
+`"@letsbot/react-native-chat"`. `#0.2.0` pins the exact release tag. Then follow the Info.plist / AndroidManifest
 (bare) or `app.json` plugin (Expo) steps above.
 
 ## Quick start
@@ -177,6 +177,24 @@ function SupportScreen({ navigation }) {
   return <LetsBotChatView onClose={() => navigation.goBack()} />;
 }
 ```
+
+### Edge-to-edge screen
+
+The chat fills the whole screen: the chat header colour paints the area under the status bar / notch and the
+composer sits above the home indicator, the Android navigation bar and the keyboard. The status-bar icons follow the
+chat header (white icons on a dark header) while the chat is under the status bar; your previous status-bar style
+comes back when the chat unmounts.
+
+- Don't wrap `LetsBotChatView` in a `SafeAreaView` or add safe-area padding around it. Give it the whole screen
+  (e.g. a navigator screen with `headerShown: false`); `LetsBot.show()` already opens a full-screen, edge-to-edge
+  modal.
+- The view passes the safe-area insets to the chat page (`boot({ insets })`, then `LetsBotHost.setInsets` on
+  rotation, keyboard and bar changes). It reads them from `react-native-safe-area-context` when installed (Expo apps
+  have it), or from the `insets` prop: `<LetsBotChatView insets={useSafeAreaInsets()} />`. Without either, only the
+  Android status-bar height is known — install `react-native-safe-area-context` for apps that draw behind the
+  navigation bar.
+- Android: the app should be edge-to-edge (the default since React Native 0.81 / Expo SDK 54). The keyboard height is
+  passed to the page, so no `KeyboardAvoidingView` is needed around the chat.
 
 ### Unread badge
 
@@ -307,8 +325,8 @@ off();
 | `LetsBot.identify({ userId, identityToken, name?, email?, phone? })` | `Promise<void>` |
 | `LetsBot.logout()` | `Promise<void>` |
 | `LetsBot.show()` / `LetsBot.hide()` | modal (needs `<LetsBotProvider>`) |
-| `<LetsBotChatView onClose? style? renderLoading? renderError? />` | embeddable chat screen |
-| `<LetsBotProvider modalProps? chatViewProps?>` | hosts the modal |
+| `<LetsBotChatView onClose? style? renderLoading? renderError? insets? />` | embeddable, edge-to-edge chat screen |
+| `<LetsBotProvider modalProps? chatViewProps?>` | hosts the full-screen, edge-to-edge modal |
 | `LetsBot.setPushToken(token, { provider?: 'fcm' \| 'apns', sandbox? })` | `Promise<void>` |
 | `LetsBot.removePushToken()` | `Promise<void>` |
 | `LetsBot.isLetsBotNotification(data)` / `isLetsBotNotification(data)` | `boolean` (accepts the data map or an object with `data`) |
@@ -363,9 +381,10 @@ Every async method rejects with a `LetsBotError` (also passed to `onError`).
 
 ## Contract notes
 
-- `configure({ color })` is forwarded to the hosted screen as an extra `color` field of
-  `window.LetsBotHost.boot(...)`. The current API contract does not define a colour override for the `ui` route, so
-  pages that do not read it fall back to the colour configured in the LetsBot panel.
+- `configure({ color })` is forwarded to the hosted screen as the `color` field of `window.LetsBotHost.boot(...)`
+  and overrides the colour configured in the LetsBot panel.
+- Safe-area insets travel as `boot({ insets: { top, bottom, left, right } })` and `LetsBotHost.setInsets(...)`
+  (CSS px); the page uses the larger of these and its own `env(safe-area-inset-*)`.
 
 ## Example
 

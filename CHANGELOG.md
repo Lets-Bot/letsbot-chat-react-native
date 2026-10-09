@@ -3,6 +3,24 @@
 All notable changes to `@letsbot/react-native-chat` are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## 0.2.0 — 2026-10-09
+
+### Changed
+- Edge-to-edge chat screen: `<LetsBotProvider>` opens the chat as a full-screen modal on both platforms (was a page
+  sheet on iOS) with translucent status and navigation bars on Android. The chat page paints its header colour under
+  the status bar / notch and keeps its composer above the home indicator, the navigation bar and the keyboard.
+- `<LetsBotChatView>` passes the safe-area insets that overlap it to the page (`boot({ insets })`, then
+  `LetsBotHost.setInsets` on rotation, keyboard and bar changes; CSS px, the Android keyboard included in `bottom`).
+  Insets come from `react-native-safe-area-context` when installed or from the new `insets` prop.
+- `X-LB-SDK` is now `react-native/0.2.0`.
+
+### Added
+- Handles the page's `chrome` event: the status-bar style follows the chat header while the chat is under the status
+  bar (restored on unmount) and the view / WebView background follows the page background, so no white flashes show
+  on open, close, rotation or keyboard animations.
+- The last chrome colours are remembered per theme for the app session and used before the page paints the next time;
+  otherwise a neutral colour (your brand colour for the header, if set) is used.
+
 ## 0.1.0 — 2026-10-08
 
 First release.

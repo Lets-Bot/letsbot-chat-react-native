@@ -36,6 +36,6 @@ describe('Expo config plugin', () => {
     const config = plugin({ name: 'Example', slug: 'example' }, { microphonePermission: 'Voice notes' });
     expect(typeof config.mods.ios.infoPlist).toBe('function');
     expect(typeof config.mods.android.manifest).toBe('function');
-    expect(config._internal.pluginHistory['@letsbot/react-native-chat']).toMatchObject({ version: '0.1.0' });
+    expect(config._internal.pluginHistory['@letsbot/react-native-chat']).toMatchObject({ version: '0.2.0' });
   });
 });

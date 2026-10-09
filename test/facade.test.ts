@@ -33,7 +33,7 @@ describe('LetsBot facade', () => {
     ] as const) {
       expect(typeof LetsBot[name]).toBe('function');
     }
-    expect(LetsBot.version).toBe('0.1.0');
+    expect(LetsBot.version).toBe('0.2.0');
     expect(isLetsBotNotification({ lb: '1' })).toBe(true);
   });
 

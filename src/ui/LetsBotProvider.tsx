@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Modal, Platform } from 'react-native';
+import { Modal } from 'react-native';
 import type { ModalProps } from 'react-native';
 
 import { core } from '../instance';
@@ -18,6 +18,10 @@ export interface LetsBotProviderProps {
 /**
  * Mount once near the root of your app. Renders the chat in a modal driven by `LetsBot.show()` / `LetsBot.hide()`
  * and by `LetsBot.handleNotification()`.
+ *
+ * The modal is full screen and edge-to-edge (Android: drawn behind the status and navigation bars): the chat page
+ * paints its header colour under the status bar and pads its composer above the home indicator / navigation bar and
+ * the keyboard itself.
  */
 export function LetsBotProvider({ children, modalProps, chatViewProps }: LetsBotProviderProps) {
   const [visible, setVisible] = useState(false);
@@ -38,7 +42,9 @@ export function LetsBotProvider({ children, modalProps, chatViewProps }: LetsBot
       {children}
       <Modal
         animationType="slide"
-        presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
+        presentationStyle="fullScreen"
+        statusBarTranslucent
+        navigationBarTranslucent
         {...modalProps}
         visible={visible}
         onRequestClose={close}

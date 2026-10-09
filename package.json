@@ -1,6 +1,6 @@
 {
   "name": "@letsbot/react-native-chat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "LetsBot In-App Chat SDK for React Native and Expo: the LetsBot chat screen, verified identity, push notifications and unread badges.",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",

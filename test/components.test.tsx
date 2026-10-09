@@ -6,7 +6,7 @@ import { LetsBot, LetsBotChatView, LetsBotProvider, useLetsBotUnread } from '../
 import { core } from '../src/instance';
 import { createMemoryStorageAdapter } from '../src/storage';
 import { APP_ID, APP_KEY, MockLetsBotServer, flush } from './helpers/mockServer';
-import { Linking } from './mocks/react-native';
+import { Linking, Platform, __mock } from './mocks/react-native';
 
 const mockInjectJavaScript = jest.fn();
 const mockReload = jest.fn();
@@ -78,7 +78,7 @@ describe('<LetsBotChatView>', () => {
     const props = webView(renderer).props;
     expect(server.routes()).toEqual(['POST session']);
     expect(props.source.uri).toBe(UI);
-    expect(props.source.headers).toMatchObject({ 'X-LB-App-Id': APP_ID, 'X-LB-SDK': 'react-native/0.1.0' });
+    expect(props.source.headers).toMatchObject({ 'X-LB-App-Id': APP_ID, 'X-LB-SDK': 'react-native/0.2.0' });
     expect(props.originWhitelist).toEqual(['*']);
     expect(props.mediaCapturePermissionGrantType).toBe('grantIfSameHostElsePrompt');
     expect(props.allowsInlineMediaPlayback).toBe(true);
@@ -157,12 +157,100 @@ describe('<LetsBotChatView>', () => {
   });
 });
 
+describe('<LetsBotChatView> edge-to-edge', () => {
+  afterEach(() => {
+    Platform.OS = 'ios';
+  });
+
+  it('passes the insets in boot and setInsets when they change', async () => {
+    configure();
+    const renderer = await render(createElement(LetsBotChatView, { insets: { top: 59, bottom: 34 } }));
+    post(renderer, { lb: 'ready' });
+    expect(injectJavaScript.mock.calls[0][0]).toContain('"insets":{"top":59,"bottom":34,"left":0,"right":0}');
+
+    injectJavaScript.mockClear();
+    await act(async () => {
+      renderer.update(createElement(LetsBotChatView, { insets: { top: 59, bottom: 34 } }));
+    });
+    expect(injectJavaScript).not.toHaveBeenCalled(); // unchanged → nothing sent
+
+    await act(async () => {
+      renderer.update(createElement(LetsBotChatView, { insets: { left: 59, right: 59, bottom: 21 } }));
+    });
+    expect(injectJavaScript).toHaveBeenCalledTimes(1);
+    expect(injectJavaScript.mock.calls[0][0]).toContain('h.setInsets({"top":0,"bottom":21,"left":59,"right":59})');
+  });
+
+  it('does not send setInsets before boot', async () => {
+    configure();
+    const renderer = await render(createElement(LetsBotChatView, { insets: { top: 59 } }));
+    await act(async () => {
+      renderer.update(createElement(LetsBotChatView, { insets: { top: 20 } }));
+    });
+    expect(injectJavaScript).not.toHaveBeenCalled();
+  });
+
+  it('Android: the keyboard is included in the bottom inset', async () => {
+    Platform.OS = 'android';
+    configure();
+    const renderer = await render(createElement(LetsBotChatView, { insets: { top: 24, bottom: 48 } }));
+    post(renderer, { lb: 'ready' });
+    injectJavaScript.mockClear();
+    await act(async () => {
+      __mock.emitKeyboard('keyboardDidShow', { endCoordinates: { screenY: 544, height: 300 } });
+    });
+    expect(injectJavaScript.mock.calls.at(-1)?.[0]).toContain('h.setInsets({"top":24,"bottom":300,');
+    await act(async () => {
+      __mock.emitKeyboard('keyboardDidHide');
+    });
+    expect(injectJavaScript.mock.calls.at(-1)?.[0]).toContain('h.setInsets({"top":24,"bottom":48,');
+  });
+
+  it('follows the page chrome: status-bar style + background, remembered for the next open', async () => {
+    LetsBot.configure({
+      appKey: APP_KEY,
+      appId: APP_ID,
+      locale: 'en',
+      color: '#0e7c66',
+      storage: createMemoryStorageAdapter(),
+    });
+    const props = { insets: { top: 59, bottom: 34 } };
+    const renderer = await render(createElement(LetsBotChatView, props));
+    const statusBar = () => renderer.root.findByType('StatusBar' as never);
+    const container = () => renderer.root.findAllByType('View' as never)[0]!;
+    // Neutral chrome before the page reports: brand header → light icons, white background.
+    expect(statusBar().props.barStyle).toBe('light-content');
+    expect(webView(renderer).props.style).toEqual({ backgroundColor: '#ffffff' });
+
+    post(renderer, { lb: 'chrome', statusBar: 'dark', header: '#FFFFFF', background: '#f5f7f9' });
+    expect(statusBar().props.barStyle).toBe('dark-content');
+    expect(webView(renderer).props.style).toEqual({ backgroundColor: '#f5f7f9' });
+    expect(container().props.style).toEqual(expect.arrayContaining([{ backgroundColor: '#f5f7f9' }]));
+
+    await act(async () => {
+      renderer.unmount();
+    });
+    const next = await render(createElement(LetsBotChatView, props));
+    expect(next.root.findByType('StatusBar' as never).props.barStyle).toBe('dark-content');
+    expect(webView(next).props.style).toEqual({ backgroundColor: '#f5f7f9' });
+  });
+
+  it('leaves the status bar alone when the view is not under it', async () => {
+    configure();
+    const renderer = await render(createElement(LetsBotChatView, { insets: { top: 0 } }));
+    expect(renderer.root.findAllByType('StatusBar' as never)).toHaveLength(0);
+  });
+});
+
 describe('<LetsBotProvider> and useLetsBotUnread', () => {
   it('opens and closes the modal through LetsBot.show() / hide() and notifications', async () => {
     configure();
     const renderer = await render(createElement(LetsBotProvider, null, createElement('App')));
     const modal = () => renderer.root.findByType('Modal' as never);
     expect(modal().props.visible).toBe(false);
+    expect(modal().props.presentationStyle).toBe('fullScreen');
+    expect(modal().props.statusBarTranslucent).toBe(true);
+    expect(modal().props.navigationBarTranslucent).toBe(true);
     await act(async () => {
       LetsBot.show();
       await flush();

@@ -2,6 +2,9 @@
  * Pure helpers for the hosted UI ⇄ native bridge (API.md §5). No React Native imports so they are unit-testable.
  */
 
+import { normalizeHex } from './chrome';
+import type { ChatInsets } from './chrome';
+
 export interface ParsedUrl {
   scheme: string;
   /** `scheme://host[:port]`, lower-cased, default port removed. */
@@ -104,7 +107,9 @@ export type BridgeEvent =
   | { lb: 'open_url'; url: string }
   | { lb: 'unread'; count: number }
   | { lb: 'message'; t: string }
-  | { lb: 'error'; code: string };
+  | { lb: 'error'; code: string }
+  /** API.md §8.1: status-bar icon style over the header + header / background colours (`#rrggbb`, lower case). */
+  | { lb: 'chrome'; lightStatusBar: boolean; header?: string; background?: string };
 
 /** Parses a page → native message. Returns null for anything that is not a valid LetsBot event. */
 export function parseBridgeMessage(data: unknown): BridgeEvent | null {
@@ -138,9 +143,33 @@ export function parseBridgeMessage(data: unknown): BridgeEvent | null {
       return typeof msg.t === 'string' ? { lb: 'message', t: msg.t } : null;
     case 'error':
       return typeof msg.code === 'string' ? { lb: 'error', code: msg.code } : null;
+    case 'chrome':
+      return parseChrome(msg);
     default:
       return null;
   }
+}
+
+function parseChrome(msg: Record<string, unknown>): BridgeEvent | null {
+  if (msg.statusBar !== 'light' && msg.statusBar !== 'dark') {
+    return null;
+  }
+  const event: { lb: 'chrome'; lightStatusBar: boolean; header?: string; background?: string } = {
+    lb: 'chrome',
+    lightStatusBar: msg.statusBar === 'light',
+  };
+  for (const field of ['header', 'background'] as const) {
+    const raw = msg[field];
+    if (raw === undefined || raw === null) {
+      continue;
+    }
+    const hex = normalizeHex(raw);
+    if (!hex) {
+      return null;
+    }
+    event[field] = hex;
+  }
+  return event;
 }
 
 export interface BootPayload {
@@ -151,6 +180,8 @@ export interface BootPayload {
   context: Record<string, unknown>;
   /** Optional brand colour override (see README "Contract notes"). */
   color?: string;
+  /** Safe-area insets in CSS px (API.md §8.1). */
+  insets?: ChatInsets;
 }
 
 /** Serialises a value for safe embedding in injected JavaScript. */
@@ -163,7 +194,7 @@ export function toJsLiteral(value: unknown): string {
 
 /** Builds the script that calls `window.LetsBotHost.<method>(arg)` if the host API exists. */
 export function buildHostCall(
-  method: 'boot' | 'setContext' | 'setTheme',
+  method: 'boot' | 'setContext' | 'setTheme' | 'setInsets',
   arg: unknown
 ): string {
   return `(function(){try{var h=window.LetsBotHost;if(h&&typeof h.${method}==='function'){h.${method}(${toJsLiteral(

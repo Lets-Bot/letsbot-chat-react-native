@@ -3,6 +3,8 @@ import type { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { buildHostCall, normalizeBaseUrl } from './bridge';
 import type { BootPayload } from './bridge';
+import { neutralChrome } from './chrome';
+import type { ChatChrome, ChatInsets } from './chrome';
 import { Emitter } from './emitter';
 import type { LetsBotEventName, LetsBotListener } from './emitter';
 import { LetsBotError, asLetsBotError } from './errors';
@@ -713,7 +715,7 @@ export class LetsBotCore {
   }
 
   /** Internal: payload for `window.LetsBotHost.boot(...)`. */
-  bootPayload(token: string): BootPayload {
+  bootPayload(token: string, insets?: ChatInsets): BootPayload {
     const { config } = this.requireConfig();
     const payload: BootPayload = {
       token,
@@ -725,7 +727,42 @@ export class LetsBotCore {
     if (config.color) {
       payload.color = config.color;
     }
+    if (insets) {
+      payload.insets = insets;
+    }
     return payload;
+  }
+
+  /** Internal: `light` / `dark` as sent to the page (`auto` follows the device appearance). */
+  resolvedTheme(): 'light' | 'dark' {
+    const theme = this.config?.theme ?? 'auto';
+    const resolved = theme === 'auto' ? (Appearance?.getColorScheme?.() ?? 'light') : theme;
+    return resolved === 'dark' ? 'dark' : 'light';
+  }
+
+  /** Internal: the app's brand colour override, if any. */
+  getColor(): string | undefined {
+    return this.config?.color;
+  }
+
+  private chromeCache = new Map<string, ChatChrome>();
+
+  private chromeKey(theme: string): string {
+    const config = this.config;
+    return config ? `${config.baseUrl}|${config.appKey}|${theme}` : theme;
+  }
+
+  /**
+   * Internal: chrome for [theme] as last reported by the page in this process, else neutral (brand colour header).
+   * Lets the next chat open with the right colours before the page paints.
+   */
+  chromeFor(theme: 'light' | 'dark'): ChatChrome {
+    return this.chromeCache.get(this.chromeKey(theme)) ?? neutralChrome(theme === 'dark', this.config?.color);
+  }
+
+  /** Internal: remembers the chrome the page reported for [theme] (colours only, in memory). */
+  saveChrome(theme: 'light' | 'dark', chrome: ChatChrome): void {
+    this.chromeCache.set(this.chromeKey(theme), chrome);
   }
 
   // ---------------------------------------------------------------------------------------------------------------
@@ -774,6 +811,7 @@ export class LetsBotCore {
     this.sessionPromise = null;
     this.generation++;
     this.context = {};
+    this.chromeCache.clear();
     this.unread = { count: 0, last: null };
     this.push = null;
     this.pushRegisteredKey = null;
